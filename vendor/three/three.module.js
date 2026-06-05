@@ -12302,6 +12302,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 					const srcFormat = _gl.RGBA;
 					const srcType = _gl.UNSIGNED_BYTE;
 
+					// >>> LOCAL PATCH (html-in-canvas) — re-apply if three is re-vendored. See CLAUDE.md. <<<
 					// The experimental html-in-canvas texElementImage2D API ships with
 					// two different signatures across Chrome channels:
 					//   3-arg ( target, internalformat, element )                 — Canary
