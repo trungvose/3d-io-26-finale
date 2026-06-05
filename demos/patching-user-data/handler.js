@@ -6,14 +6,15 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export function handleUserDataRequest(req, res) {
+export async function handleUserDataRequest(req, res, vite) {
   const url = req.url;
   if (url === '/demos/patching-user-data/' || url === '/demos/patching-user-data/index.html') {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Transfer-Encoding', 'chunked');
 
     const filePath = path.resolve(__dirname, 'index.html');
-    const template = fs.readFileSync(filePath, 'utf-8');
+    let template = fs.readFileSync(filePath, 'utf-8');
+    if (vite) template = await vite.transformIndexHtml(url, template);
     res.write(template);
 
     setTimeout(() => {

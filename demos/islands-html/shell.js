@@ -6,11 +6,12 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export function handleIslandsShell(req, res) {
+export async function handleIslandsShell(req, res, vite) {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   try {
     const filePath = path.resolve(__dirname, 'index.html');
-    const template = fs.readFileSync(filePath, 'utf-8');
+    let template = fs.readFileSync(filePath, 'utf-8');
+    if (vite) template = await vite.transformIndexHtml(req.url, template);
     res.end(template);
   } catch (e) {
     console.error('Error reading index.html:', e);

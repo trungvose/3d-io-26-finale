@@ -12,8 +12,35 @@
  * nothing here can leak into demo content. Do NOT add bare element selectors.
  */
 
-#browser-chrome {
+:root {
   --bf-height: 84px;
+}
+
+/*
+ * Reserve the top strip for the chrome and turn the demo's own <body> into a
+ * scroll region that lives ENTIRELY BELOW the bar. The body is pinned with
+ * `position: fixed` between the bar bottom and the viewport bottom, so its
+ * content starts exactly at the bottom of the bar and scrolls within that
+ * region — it never slides underneath the chrome. We force `height/min-height`
+ * to auto so a demo's own `height: 100vh` / `min-height: 100vh` can't push the
+ * box back to full-viewport height; `overflow: auto` then scrolls any content
+ * taller than the available area.
+ */
+html {
+  margin: 0 !important;
+}
+
+body {
+  position: fixed !important;
+  inset: var(--bf-height) 0 0 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  overflow: auto !important;
+}
+
+#browser-chrome {
   --bf-bg-toolbar: #f0f0f4;
   --bf-bg-input: #e2e2e6;
   --bf-bg-input-focus: #ffffff;

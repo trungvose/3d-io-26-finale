@@ -34,19 +34,22 @@ async function createServer() {
       return;
     }
 
-    // Route to specific demo handlers
+    // Route to specific demo handlers. These serve their index.html themselves
+    // (and stream patches), so they bypass Vite's normal HTML path — pass `vite`
+    // so they can still run the page through transformIndexHtml and pick up the
+    // injected browser chrome (demos/_frame/wrap.js).
     if (pathname === '/demos/patching-clock/' || pathname === '/demos/patching-clock/index.html') {
-      handleClockRequest(req, res);
+      await handleClockRequest(req, res, vite);
       return;
     }
-    
+
     if (pathname === '/demos/patching-user-data/' || pathname === '/demos/patching-user-data/index.html') {
-      handleUserDataRequest(req, res);
+      await handleUserDataRequest(req, res, vite);
       return;
     }
 
     if (pathname === '/demos/islands-html/' || pathname === '/demos/islands-html/index.html') {
-      handleIslandsShell(req, res);
+      await handleIslandsShell(req, res, vite);
       return;
     }
 

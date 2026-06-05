@@ -54,7 +54,12 @@ export function browserChrome() {
         const js = read('frame.js');
 
         const styleTag = `\n<style data-browser-chrome>\n${css}\n</style>\n`;
-        const scriptTag = `\n<script type="module" data-browser-chrome>\n${js}\n</script>\n`;
+        // Classic (non-module) inline script on purpose: a `type="module"` script
+        // is deferred until the document finishes parsing, which NEVER happens on
+        // infinitely-streaming demos (e.g. patching-clock). frame.js is a
+        // self-contained IIFE with no imports, so it runs synchronously the moment
+        // the parser reaches it — correct even mid-stream.
+        const scriptTag = `\n<script data-browser-chrome>\n${js}\n</script>\n`;
 
         // Inject into the body FIRST, while the document still contains only the
         // demo's real <body> tag. (If we injected the <style> first, the regex
