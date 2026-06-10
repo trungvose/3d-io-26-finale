@@ -962,7 +962,8 @@ const setupMCP = () => {
             "/demos/jelly/",
             "/demos/analyse-image/",
             "/demos/berlin-io-connect/",
-            "/demos/modern-web-guidance/"
+            "/demos/modern-web-guidance/",
+            "/demos/nested-view-transition/"
           ],
           description: "The URL of the demo to navigate to."
         }
