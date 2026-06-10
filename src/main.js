@@ -963,7 +963,9 @@ const setupMCP = () => {
             "/demos/analyse-image/",
             "/demos/berlin-io-connect/",
             "/demos/modern-web-guidance/",
-            "/demos/nested-view-transition/"
+            "/demos/nested-view-transition/",
+            "/demos/email-verification-protocol/",
+            "/demos/immediate-ui-mode/"
           ],
           description: "The URL of the demo to navigate to."
         }
