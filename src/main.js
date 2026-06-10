@@ -590,6 +590,13 @@ window.addEventListener('keydown', (e) => {
     }
   }
 
+  if (e.key.toLowerCase() === 't') {
+    const iframe = document.querySelector('.monitor-html-frame');
+    if (iframe) {
+      iframe.src = '/demos/berlin-io-connect/index.html';
+    }
+  }
+
   if (e.key.toLowerCase() === 'c') {
     if (typeof activeFocusTargetId !== 'undefined' && activeFocusTargetId === 'monitor') {
       if (typeof resetCameraFocus === 'function') resetCameraFocus();
@@ -953,7 +960,8 @@ const setupMCP = () => {
             "/demos/patching-user-data/",
             "/demos/islands-html/",
             "/demos/jelly/",
-            "/demos/analyse-image/"
+            "/demos/analyse-image/",
+            "/demos/berlin-io-connect/"
           ],
           description: "The URL of the demo to navigate to."
         }
