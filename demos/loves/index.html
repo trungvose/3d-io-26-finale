@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOVES &middot; Modern Web</title>
+  <style>
+    /* ---- Theming + palette: one declaration each, no JS. ------------- */
+    :root {
+      color-scheme: light dark;
+      --bg:    light-dark(#fff0f5, #160d14);
+      --card:  light-dark(#ffffff, #241521);
+      --ink:   light-dark(#3a2530, #f3e6ee);
+      --muted: light-dark(#c3aab5, #6b5460);
+      --brand: light-dark(#e91e63, #ff6fa5);
+
+      /* one hue per counted letter — reused everywhere */
+      --cL: light-dark(#e8589b, #ff7eb6);
+      --cO: light-dark(#e07d1c, #ffb454);
+      --cV: light-dark(#b89500, #ffe14d);
+      --cE: light-dark(#2f9e54, #6ee787);
+      --cS: light-dark(#2b8fe0, #6cb8ff);
+
+      /* the whole show is timed off these two knobs */
+      --phase: 1s;   /* time devoted to each letter L-O-V-E-S */
+      --gap:   .5s;   /* gap between cascade rows at the end    */
+    }
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      margin: 0; min-height: 100dvh;
+      display: grid; place-items: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      width: min(620px, 100%);
+      padding: 36px;
+      border-radius: 46px;
+      corner-shape: scoop;                       /* concave corners — clearly NOT a radius */
+      box-shadow: 0 30px 60px -20px light-dark(#e91e6355, #0009);
+    }
+
+    h1 {
+      text-align: center; margin: 0 0 24px; font-size: 38px;
+      background: linear-gradient(135deg, var(--brand), light-dark(#ff9a3c, #ffb86b));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+
+    .field { display: grid; gap: 5px; margin-bottom: 14px; }
+    label { font-size: 16px; color: var(--muted); }
+    input {
+      padding: 14px 16px;
+      border: 2px solid color-mix(in oklab, var(--brand) 30%, transparent);
+      border-radius: 14px; corner-shape: superellipse(1.8);
+      background: transparent; color: inherit; font-size: 19px;
+    }
+    input:focus-visible { outline: 2px solid var(--brand); border-color: var(--brand); }
+
+    button {
+      width: 100%; margin-top: 8px;
+      /* fixed box + flex centering: the label can swap (Calculate / Pause /
+         Resume / Replay) with zero layout shift, even as the emoji changes. */
+      min-height: 60px; display: flex; align-items: center; justify-content: center;
+      gap: 8px; line-height: 1; white-space: nowrap;
+      border: 0; border-radius: 16px; corner-shape: superellipse(2);
+      background: var(--brand); color: white; font-size: 20px; font-weight: 600;
+      cursor: pointer; transition: scale .15s;
+    }
+    button:active { scale: .97; }
+
+    /* ---- The stacked name / LOVES / name block. -------------------- */
+    .names { margin-top: 30px; text-align: center; line-height: 1.7; }
+    .line { font-size: 28px; font-weight: 600; letter-spacing: 1px; color: var(--muted); }
+    .line.key { font-size: 46px; font-weight: 800; margin: 8px 0; }
+    .ch { display: inline-block; }
+
+    /* A counted letter in a name: stays dim until ITS phase, then lights. */
+    .ch.hit {
+      animation: light .6s both;
+      animation-delay: calc(var(--i) * var(--phase) + .35s);
+    }
+    /* The big L-O-V-E-S letters: glow at the very start of their phase.
+       Position in the word == letter index, so sibling-index() nails it. */
+    .ch.key {
+      color: var(--muted);
+      animation: glow .6s both;
+      animation-delay: calc((sibling-index() - 1) * var(--phase));
+    }
+    @keyframes light {
+      from { color: var(--muted); }
+      45%  { transform: scale(1.7); color: var(--c); text-shadow: 0 0 16px var(--c); }
+      to   { transform: scale(1.12); color: var(--c); text-shadow: 0 0 6px var(--c); }
+    }
+    @keyframes glow {
+      from { color: var(--muted); }
+      45%  { transform: scale(1.9); color: var(--c); text-shadow: 0 0 26px var(--c); }
+      to   { transform: scale(1.2); color: var(--c); text-shadow: 0 0 10px var(--c); }
+    }
+
+    /* ---- The 5 counts: each drops in right after its letter's phase.
+       Each chip's position == its letter, so sibling-index() drives it. */
+    .counts { display: flex; gap: 10px; justify-content: center; margin-top: 26px; min-height: 58px; }
+    .counts .num { animation-delay: calc((sibling-index() - 1) * var(--phase) + .6s); }
+
+    /* ---- The funnel: rows 4,3,2,1 cascade ROW BY ROW after the letters.
+       We animate the ROW itself — that's the element sibling-index() counts,
+       so the whole row drops in as one block, one after another. */
+    .cascade { display: grid; gap: 12px; justify-items: center; margin-top: 12px; }
+    .cascade .row {
+      display: flex; gap: 10px;
+      animation: drop .45s both;
+      animation-delay: calc(var(--phase) * 5 + (sibling-index() - 1) * var(--gap));
+    }
+    .cascade .num { animation: none; }   /* the row animates as a block now */
+
+    .num {
+      --c: var(--brand);
+      display: grid; place-items: center;
+      width: 58px; height: 58px; font-size: 26px; font-weight: 800;
+      border-radius: 18px; corner-shape: bevel;   /* gem-cut chips */
+      color: var(--c);
+      background: color-mix(in oklab, var(--c) 20%, transparent);
+      animation: drop .45s both;
+    }
+    @keyframes drop {
+      from { opacity: 0; transform: translateY(-14px) scale(.5); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* ---- The verdict, after the funnel resolves. ------------------- */
+    .result {
+      text-align: center; margin-top: 26px;
+      font-size: 92px; font-weight: 800; line-height: 1;
+      background: linear-gradient(135deg, var(--brand), light-dark(#ff9a3c, #ffd36b));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      animation: rise .6s both;
+      animation-delay: calc(var(--phase) * 5 + 4 * var(--gap) + .3s);
+    }
+    .verdict {
+      text-align: center; color: var(--muted); margin-top: 6px; font-size: 22px;
+      animation: rise .6s both;
+      animation-delay: calc(var(--phase) * 5 + 4 * var(--gap) + .45s);
+    }
+    @keyframes rise { from { opacity: 0; transform: scale(.5); } to { opacity: 1; transform: none; } }
+
+    /* Stage control: freeze the ENTIRE timeline mid-flight to explain it.
+       Because every animation lives in CSS, one line pauses all of them. */
+    #out.paused * { animation-play-state: paused !important; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>&#10084;&#65039; LOVES</h1>
+
+    <div class="field">
+      <label for="a">Your name</label>
+      <input id="a" value="Selena Gomez" />
+    </div>
+    <div class="field">
+      <label for="b">Their name</label>
+      <input id="b" value="Justin Bieber" />
+    </div>
+    <button id="go">Calculate love &#10084;&#65039;</button>
+
+    <div id="out"></div>
+  </main>
+
+  <script>
+    // JS does ONLY: the math + build the markup (and tag each element with
+    // its letter index --i + colour --c). Every bit of *timing* lives in CSS.
+    const LETTERS = ['L', 'O', 'V', 'E', 'S'];
+
+    const verdictFor = (n) =>
+      n > 45  ? 'A match made in heaven 💍' :
+      n >= 35 ? "Ooh, there's potential 👀" :
+      n >= 25 ? "It's... complicated 😅" :
+                'Friendzone, sorry 🫠';
+
+    // Render one name as char spans; the L-O-V-E-S chars get tagged.
+    const renderName = (text) => [...text.toUpperCase()].map((ch) => {
+      const i = LETTERS.indexOf(ch);
+      return i >= 0
+        ? `<span class="ch hit" style="--i:${i};--c:var(--c${ch})">${ch}</span>`
+        : `<span class="ch">${ch === ' ' ? '&nbsp;' : ch}</span>`;
+    }).join('');
+
+    const out = document.getElementById('out');
+    const goBtn = document.getElementById('go');
+    let state = 'idle';   // idle -> playing -> paused -> playing ... -> idle (replay)
+
+    function render() {
+      const a = document.getElementById('a').value;
+      const b = document.getElementById('b').value;
+      const line = (a + 'LOVES' + b).toUpperCase();
+
+      // counts of L,O,V,E,S, then reduce adjacent pairs down to one number
+      let seq = LETTERS.map((l) => [...line].filter((c) => c === l).length);
+      const steps = [seq];
+      while (seq.length > 1) {
+        seq = seq.slice(0, -1).map((n, i) => n + seq[i + 1]);
+        steps.push(seq);
+      }
+      const score = steps.at(-1)[0] % 100;
+
+      const keyHTML = LETTERS.map((l) =>
+        `<span class="ch key" style="--c:var(--c${l})">${l}</span>`).join('');
+
+      const countsHTML = steps[0].map((n, i) =>
+        `<span class="num" style="--c:var(--c${LETTERS[i]})">${n}</span>`).join('');
+
+      const cascadeHTML = steps.slice(1).map((row) =>
+        `<div class="row">${row.map((n) => `<span class="num">${n}</span>`).join('')}</div>`).join('');
+
+      out.classList.remove('paused');
+      out.innerHTML = `
+        <div class="names">
+          <div class="line">${renderName(a)}</div>
+          <div class="line key">${keyHTML}</div>
+          <div class="line">${renderName(b)}</div>
+        </div>
+        <div class="counts">${countsHTML}</div>
+        <div class="cascade">${cascadeHTML}</div>
+        <div class="result">${score}%</div>
+        <div class="verdict">${verdictFor(score)}</div>`;
+
+      // when the final element finishes animating, offer a replay
+      out.querySelector('.verdict').addEventListener('animationend', () => {
+        state = 'idle';
+        goBtn.textContent = 'Replay ❤️';
+      }, { once: true });
+    }
+
+    // One button, cycling: Calculate -> Pause -> Resume -> ... -> Replay
+    goBtn.addEventListener('click', () => {
+      if (state === 'idle') {
+        render();
+        state = 'playing';
+        goBtn.textContent = '⏸ Pause';
+      } else if (state === 'playing') {
+        out.classList.add('paused');     // freeze the whole timeline
+        state = 'paused';
+        goBtn.textContent = '▶ Resume';
+      } else {
+        out.classList.remove('paused');  // continue from where it froze
+        state = 'playing';
+        goBtn.textContent = '⏸ Pause';
+      }
+    });
+
+    // editing either name starts a fresh calculation
+    ['a', 'b'].forEach((id) =>
+      document.getElementById(id).addEventListener('input', () => {
+        state = 'idle';
+        goBtn.textContent = 'Calculate love ❤️';
+      }));
+  </script>
+</body>
+</html>

@@ -50,7 +50,7 @@ app.innerHTML = `
         <div class="monitor-html-subtree">
           <iframe
             class="monitor-html-frame"
-            src="/demos/new-tab/index.html"
+            src="/demos/loves/index.html"
             title="Monitor demos"
             loading="eager"
             allow="display-capture; publickey-credentials-get; publickey-credentials-create"
@@ -945,6 +945,7 @@ const setupMCP = () => {
         url: {
           type: "string",
           enum: [
+            "/demos/loves/",
             "/demos/browser/",
             "/demos/flappy-bird/",
             "/demos/maltavista/",
