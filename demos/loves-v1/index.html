@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOVES Calculator</title>
+  <style>
+    /* The kind of CSS a model trained on 2019 Stack Overflow writes:
+       no light-dark(), no corner-shape, no color-mix(), no sibling-index().
+       Everything below is hand-wired, and the rest is done in JavaScript. */
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #fff0f5; color: #333;
+      margin: 0; padding: 40px 16px;
+    }
+
+    .container {
+      max-width: 620px; margin: 0 auto;
+      background: #fff; border: 1px solid #ccc; border-radius: 8px; padding: 32px;
+    }
+
+    h1 { text-align: center; font-size: 32px; }
+    label { font-size: 16px; }
+    input {
+      width: 100%; padding: 14px; margin: 5px 0 16px;
+      border: 1px solid #ccc; border-radius: 4px; font-size: 19px;
+    }
+    button {
+      width: 100%; padding: 16px; background: #e91e63; color: #fff;
+      border: none; border-radius: 4px; font-size: 20px; cursor: pointer;
+    }
+    button:hover { background: #c2185b; }
+    .toggle-btn {
+      width: auto; background: #666; padding: 8px 14px; font-size: 15px;
+      float: right; margin-bottom: 10px;
+    }
+
+    /* Names block */
+    .names { text-align: center; margin-top: 30px; line-height: 1.7; }
+    .line { font-size: 28px; font-weight: bold; color: #aaa; letter-spacing: 1px; }
+    .line.key { font-size: 46px; }
+    .ch { display: inline-block; transition: all 0.3s; }
+    .ch.lit { transform: scale(1.3); } /* colour is set inline from JS */
+
+    /* Numbers */
+    .counts, .row { text-align: center; margin: 8px 0; }
+    .num {
+      display: inline-block; width: 58px; height: 58px; line-height: 58px;
+      margin: 4px; border-radius: 8px; color: #fff; font-weight: bold; font-size: 26px;
+      background: #f48fb1; opacity: 0; transition: opacity 0.3s, transform 0.3s;
+      transform: translateY(-10px);
+    }
+    .num.show { opacity: 1; transform: none; }
+
+    .result {
+      text-align: center; font-size: 80px; font-weight: bold; color: #e91e63;
+      margin-top: 20px; opacity: 0; transition: opacity 0.4s;
+    }
+    .result.show { opacity: 1; }
+    .verdict { text-align: center; color: #888; font-size: 22px; opacity: 0; transition: opacity 0.4s; }
+    .verdict.show { opacity: 1; }
+
+    /* === Dark mode — all dark overrides grouped here === */
+    body.dark-mode { background: #160d14; color: #f3e6ee; }
+    body.dark-mode .container { background: #241521; border-color: #3d2035; }
+    body.dark-mode input { background: #2d1a29; border-color: #3d2035; color: #f3e6ee; }
+    body.dark-mode .line { color: #6b5460; }
+    body.dark-mode .result { color: #ff6fa5; }
+    body.dark-mode .verdict { color: #6b5460; }
+    body.dark-mode .num { background: #3d1a2e; } /* cascade rows only — counts row uses inline color which wins */
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button class="toggle-btn" onclick="toggleTheme()">Toggle theme</button>
+    <h1>&#10084; LOVES Calculator &#10084;</h1>
+    <label>Your name</label>
+    <input type="text" id="nameA" value="Justin Bieber" />
+    <label>Their name</label>
+    <input type="text" id="nameB" value="Hailey Baldwin" />
+    <button onclick="calculate()">Calculate Love</button>
+
+    <div class="names">
+      <div class="line" id="lineA"></div>
+      <div class="line key" id="lineKey"></div>
+      <div class="line" id="lineB"></div>
+    </div>
+    <div class="counts" id="counts"></div>
+    <div id="cascade"></div>
+    <div class="result" id="result"></div>
+    <div class="verdict" id="verdict"></div>
+  </div>
+
+  <script>
+    // Theme handled manually in JS, because the model doesn't know light-dark().
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    if (mq.matches) document.body.classList.add('dark-mode');
+    mq.addEventListener('change', function(e) {
+      document.body.classList.toggle('dark-mode', e.matches);
+    });
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode');
+    }
+
+    var LETTERS = ['L', 'O', 'V', 'E', 'S'];
+    // Colours hand-maintained in JS — and we need a SECOND copy of these
+    // for dark mode, since there's no light-dark() to pick for us.
+    var COLORS      = { L: '#e8589b', O: '#e07d1c', V: '#b89500', E: '#2f9e54', S: '#2b8fe0' };
+    var DARK_COLORS = { L: '#ff7eb6', O: '#ffb454', V: '#ffe14d', E: '#6ee787', S: '#6cb8ff' };
+    function getColors() {
+      return document.body.classList.contains('dark-mode') ? DARK_COLORS : COLORS;
+    }
+
+    var PHASE = 1000;  // ms per letter
+    var GAP = 500;     // ms per cascade row
+
+    function countLetter(line, letter) {
+      var count = 0;
+      for (var i = 0; i < line.length; i++) {
+        if (line.charAt(i) === letter) count++;
+      }
+      return count;
+    }
+
+    function buildNameLine(el, text) {
+      el.innerHTML = '';
+      var spans = [];
+      var upper = text.toUpperCase();
+      for (var i = 0; i < upper.length; i++) {
+        var ch = upper.charAt(i);
+        var span = document.createElement('span');
+        span.className = 'ch';
+        span.innerHTML = ch === ' ' ? '&nbsp;' : ch;
+        span.setAttribute('data-letter', ch);
+        el.appendChild(span);
+        spans.push(span);
+      }
+      return spans;
+    }
+
+    function calculate() {
+      var a = document.getElementById('nameA').value;
+      var b = document.getElementById('nameB').value;
+      var line = (a + 'LOVES' + b).toUpperCase();
+
+      // reset everything
+      document.getElementById('counts').innerHTML = '';
+      document.getElementById('cascade').innerHTML = '';
+      var resultEl = document.getElementById('result');
+      var verdictEl = document.getElementById('verdict');
+      resultEl.className = 'result';
+      verdictEl.className = 'verdict';
+
+      // Build the three lines of characters.
+      var spansA = buildNameLine(document.getElementById('lineA'), a);
+      var keyEl = document.getElementById('lineKey');
+      keyEl.innerHTML = '';
+      var keySpans = [];
+      for (var k = 0; k < LETTERS.length; k++) {
+        var ks = document.createElement('span');
+        ks.className = 'ch';
+        ks.innerHTML = LETTERS[k];
+        keyEl.appendChild(ks);
+        keySpans.push(ks);
+      }
+      var spansB = buildNameLine(document.getElementById('lineB'), b);
+
+      // Compute counts + the reduction steps up front.
+      var counts = [];
+      for (var c = 0; c < LETTERS.length; c++) {
+        counts.push(countLetter(line, LETTERS[c]));
+      }
+      var steps = [counts];
+      var seq = counts;
+      while (seq.length > 1) {
+        var next = [];
+        for (var s = 0; s < seq.length - 1; s++) next.push(seq[s] + seq[s + 1]);
+        seq = next;
+        steps.push(seq);
+      }
+      var score = steps[steps.length - 1][0] % 100;
+
+      var countsEl = document.getElementById('counts');
+
+      // ----- Orchestrate the whole timeline by hand with setTimeout. -----
+      for (var li = 0; li < LETTERS.length; li++) {
+        (function (i) {
+          var letter = LETTERS[i];
+          var color = getColors()[letter];
+
+          // 1. glow the big LOVES letter
+          setTimeout(function () {
+            keySpans[i].classList.add('lit');
+            keySpans[i].style.color = color;
+            keySpans[i].style.textShadow = '0 0 12px ' + color;
+          }, i * PHASE);
+
+          // 2. light every matching letter in BOTH names
+          setTimeout(function () {
+            lightMatches(spansA, letter, color);
+            lightMatches(spansB, letter, color);
+          }, i * PHASE + 350);
+
+          // 3. drop the count for this letter
+          setTimeout(function () {
+            var num = document.createElement('span');
+            num.className = 'num';
+            num.style.background = color;
+            num.innerHTML = counts[i];
+            countsEl.appendChild(num);
+            // force reflow so the transition runs, then reveal
+            void num.offsetWidth;
+            num.classList.add('show');
+          }, i * PHASE + 600);
+        })(li);
+      }
+
+      // ----- The cascade rows, one after another. -----
+      var cascadeEl = document.getElementById('cascade');
+      for (var ri = 1; ri < steps.length; ri++) {
+        (function (rowIndex) {
+          setTimeout(function () {
+            var rowDiv = document.createElement('div');
+            rowDiv.className = 'row';
+            for (var n = 0; n < steps[rowIndex].length; n++) {
+              var num = document.createElement('span');
+              num.className = 'num';
+              num.innerHTML = steps[rowIndex][n];
+              rowDiv.appendChild(num);
+            }
+            cascadeEl.appendChild(rowDiv);
+            var nums = rowDiv.getElementsByClassName('num');
+            for (var m = 0; m < nums.length; m++) {
+              void nums[m].offsetWidth;
+              nums[m].classList.add('show');
+            }
+          }, LETTERS.length * PHASE + (rowIndex - 1) * GAP);
+        })(ri);
+      }
+
+      // ----- Finally, the result, counted up by hand. -----
+      var endTime = LETTERS.length * PHASE + (steps.length - 1) * GAP + 300;
+      setTimeout(function () {
+        resultEl.classList.add('show');
+        var current = 0;
+        var timer = setInterval(function () {
+          current++;
+          resultEl.innerHTML = current + '%';
+          if (current >= score) {
+            clearInterval(timer);
+            verdictEl.innerHTML = verdictFor(score);
+            verdictEl.classList.add('show');
+          }
+        }, 25);
+      }, endTime);
+    }
+
+    function lightMatches(spans, letter, color) {
+      for (var i = 0; i < spans.length; i++) {
+        if (spans[i].getAttribute('data-letter') === letter) {
+          spans[i].classList.add('lit');
+          spans[i].style.color = color;
+          spans[i].style.textShadow = '0 0 8px ' + color;
+        }
+      }
+    }
+
+    function verdictFor(n) {
+      if (n > 45) return 'A match made in heaven 💍';
+      if (n >= 35) return "Ooh, there's potential 👀";
+      if (n >= 25) return "It's... complicated 😅";
+      return 'Friendzone, sorry 🫠';
+    }
+  </script>
+</body>
+</html>

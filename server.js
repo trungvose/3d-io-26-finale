@@ -97,7 +97,7 @@ async function createServer() {
     });
   });
 
-  const PORT = process.env.PORT || 5173;
+  const PORT = process.env.PORT || 8081;
   server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
