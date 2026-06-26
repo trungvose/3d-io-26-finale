@@ -50,7 +50,7 @@ app.innerHTML = `
         <div class="monitor-html-subtree">
           <iframe
             class="monitor-html-frame"
-            src="/demos/loves-v2/index.html"
+            src="/demos/new-tab/index.html"
             title="Monitor demos"
             loading="eager"
             allow="display-capture; publickey-credentials-get; publickey-credentials-create"
@@ -71,6 +71,10 @@ document.body.classList.toggle('monitor-debug', monitorDebugEnabled);
 const sceneShell = document.querySelector('.scene-shell');
 const htmlSubtree = document.querySelector('.monitor-html-subtree');
 const htmlFrame = document.querySelector('.monitor-html-frame');
+
+// Prevent OrbitControls from consuming wheel events that happen over the monitor
+// so the iframe content can scroll normally.
+htmlSubtree.addEventListener('wheel', e => e.stopPropagation(), { passive: true });
 const debugLog = document.querySelector('.monitor-debug-log');
 const monitorViewport = {
   width: 960,
