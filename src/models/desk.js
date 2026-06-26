@@ -117,7 +117,7 @@ export const buildDesk = ({
       plasticMaterial,
     ],
   );
-  monitorShell.position.set(-5.1, 4.05, -4.45);
+  monitorShell.position.set(-5.1, 4.25, -4.45);
   monitorShell.castShadow = true;
   monitorShell.receiveShadow = true;
   deskGroup.add(monitorShell);
@@ -145,7 +145,7 @@ export const buildDesk = ({
       side: THREE.DoubleSide,
     }),
   );
-  frontFrame.position.set(-5.1, 4.05, -3.86);
+  frontFrame.position.set(-5.1, 4.25, -3.86);
   frontFrame.renderOrder = 3;
   deskGroup.add(frontFrame);
 
@@ -171,7 +171,7 @@ export const buildDesk = ({
   monitorState.material = screenMaterial; // Store for power toggling
 
   const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.92, 0.72), screenMaterial);
-  screen.position.set(-5.1, 4.05, -3.86);
+  screen.position.set(-5.1, 4.25, -3.86);
   screen.material.side = THREE.DoubleSide;
   screen.renderOrder = 2;
   deskGroup.add(screen);
@@ -185,7 +185,7 @@ export const buildDesk = ({
       metalness: 0.12,
     }),
   );
-  bezel.position.set(-5.1, 4.05, -3.865);
+  bezel.position.set(-5.1, 4.25, -3.865);
   bezel.material.side = THREE.DoubleSide;
   bezel.renderOrder = 1;
   deskGroup.add(bezel);
@@ -202,12 +202,12 @@ export const buildDesk = ({
         opacity: 0.9,
       }),
     );
-    monitorGuide.position.set(-5.1, 4.05, -3.85);
+    monitorGuide.position.set(-5.1, 4.25, -3.85);
     deskGroup.add(monitorGuide);
 
     const monitorNormal = new THREE.ArrowHelper(
       new THREE.Vector3(0, 0, 1),
-      new THREE.Vector3(-5.1, 4.05, -3.85),
+      new THREE.Vector3(-5.1, 4.25, -3.85),
       0.38,
       0xffb36b,
       0.1,
@@ -216,17 +216,13 @@ export const buildDesk = ({
     deskGroup.add(monitorNormal);
   }
 
-  const stand = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.45, 16), plasticMaterial);
-  stand.position.set(-5.1, 3.3, -4.45);
-  stand.castShadow = true;
-  stand.receiveShadow = true;
-  deskGroup.add(stand);
+  // No separate stand — the horizontal tower case acts as the base.
 
   const tempCenter = new THREE.Vector3();
   const tempDirection = new THREE.Vector3();
   const tempPosition = new THREE.Vector3();
 
-  registerFocusTarget('monitor', [monitorShell, frontFrame, screen, stand], {
+  registerFocusTarget('monitor', [monitorShell, frontFrame, screen], {
     getView: () => {
       screen.updateWorldMatrix(true, false);
       screen.getWorldPosition(tempCenter);
@@ -276,94 +272,82 @@ export const buildDesk = ({
   scrollWheel.rotation.z = Math.PI / 2;
   deskGroup.add(scrollWheel);
 
-  const towerMaterial = new THREE.MeshStandardMaterial({
-    color: '#c8beb4',
-    roughness: 0.8,
-  });
-  const towerX = -3.6;
-  const towerZ = -4.6;
-  const towerW = 0.7;
-  const towerH = 1.6;
-  const towerD = 1.4;
-  const towerY = towerH / 2 + 0.02;
+  // --- Horizontal desktop tower (lying flat on the desk, under the monitor) ---
+  const towerMaterial = new THREE.MeshStandardMaterial({ color: '#c8beb4', roughness: 0.8 });
+  // Desk surface y = 3.15 + 0.12 = 3.27; tower H=0.45 → center y = 3.495, top = 3.72
+  // Monitor center y = 4.25; monitor bottom = 3.725 — sits just on top of tower ✓
+  const twX = -5.1;
+  const twY = 3.495;
+  const twZ = -4.45;
+  const twW = 2.0;   // x — matches monitor width
+  const twH = 0.45;  // y — lying flat
+  const twD = 1.5;   // z — front to back
 
-  const towerCase = new THREE.Mesh(new THREE.BoxGeometry(towerW, towerH, towerD), towerMaterial);
-  towerCase.position.set(towerX, towerY, towerZ);
+  const towerCase = new THREE.Mesh(new THREE.BoxGeometry(twW, twH, twD), towerMaterial);
+  towerCase.position.set(twX, twY, twZ);
   towerCase.castShadow = true;
   towerCase.receiveShadow = true;
   deskGroup.add(towerCase);
 
+  // Drive bays on front face (facing the room, +z side)
   const driveBayMaterial = new THREE.MeshStandardMaterial({ color: '#a09888', roughness: 0.9 });
-  const driveBay1 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.14, 0.02), driveBayMaterial);
-  driveBay1.position.set(towerX, towerY + 0.55, towerZ + towerD / 2 + 0.01);
+  const driveBay1 = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.12, 0.02), driveBayMaterial);
+  driveBay1.position.set(twX - 0.35, twY + 0.1, twZ + twD / 2 + 0.01);
   deskGroup.add(driveBay1);
 
-  const driveBay2 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.14, 0.02), driveBayMaterial);
-  driveBay2.position.set(towerX, towerY + 0.35, towerZ + towerD / 2 + 0.01);
+  const driveBay2 = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.1, 0.02), driveBayMaterial);
+  driveBay2.position.set(twX - 0.35, twY - 0.06, twZ + twD / 2 + 0.01);
   deskGroup.add(driveBay2);
 
   const powerBtn = new THREE.Mesh(
     new THREE.CylinderGeometry(0.05, 0.05, 0.02, 12),
     new THREE.MeshStandardMaterial({ color: '#e8e0d0', roughness: 0.5 }),
   );
-  powerBtn.position.set(towerX + 0.15, towerY + 0.55, towerZ + towerD / 2 + 0.015);
+  powerBtn.position.set(twX + 0.7, twY + 0.08, twZ + twD / 2 + 0.015);
   powerBtn.rotation.x = Math.PI / 2;
   deskGroup.add(powerBtn);
 
   const powerLed = new THREE.Mesh(
     new THREE.BoxGeometry(0.04, 0.04, 0.02),
-    new THREE.MeshStandardMaterial({
-      color: '#44ff44',
-      emissive: '#22cc22',
-      emissiveIntensity: 0.8,
-    }),
+    new THREE.MeshStandardMaterial({ color: '#44ff44', emissive: '#22cc22', emissiveIntensity: 0.8 }),
   );
-  powerLed.position.set(towerX + 0.15, towerY + 0.42, towerZ + towerD / 2 + 0.015);
+  powerLed.position.set(twX + 0.7, twY - 0.06, twZ + twD / 2 + 0.015);
   deskGroup.add(powerLed);
   activityLights.push(powerLed.material);
 
   const netLedYellow = new THREE.Mesh(
     new THREE.BoxGeometry(0.03, 0.03, 0.02),
-    new THREE.MeshStandardMaterial({
-      color: '#d4cc15',
-      emissive: '#d4cc15',
-      emissiveIntensity: 0.8,
-    }),
+    new THREE.MeshStandardMaterial({ color: '#d4cc15', emissive: '#d4cc15', emissiveIntensity: 0.8 }),
   );
-  netLedYellow.position.set(towerX + 0.1, towerY + 0.4, towerZ - towerD / 2 - 0.01);
+  netLedYellow.position.set(twX + 0.62, twY - 0.06, twZ + twD / 2 + 0.015);
   deskGroup.add(netLedYellow);
   networkLights.push(netLedYellow.material);
 
   const netLedGreen = new THREE.Mesh(
     new THREE.BoxGeometry(0.03, 0.03, 0.02),
-    new THREE.MeshStandardMaterial({
-      color: '#15d435',
-      emissive: '#15d435',
-      emissiveIntensity: 0.8,
-    }),
+    new THREE.MeshStandardMaterial({ color: '#15d435', emissive: '#15d435', emissiveIntensity: 0.8 }),
   );
-  netLedGreen.position.set(towerX + 0.15, towerY + 0.4, towerZ - towerD / 2 - 0.01);
+  netLedGreen.position.set(twX + 0.56, twY - 0.06, twZ + twD / 2 + 0.015);
   deskGroup.add(netLedGreen);
   networkLights.push(netLedGreen.material);
 
   const grilleMaterial = new THREE.MeshStandardMaterial({ color: '#8a8070', roughness: 1 });
-  for (let i = 0; i < 6; i++) {
-    const slat = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.02, 0.02), grilleMaterial);
-    slat.position.set(towerX, towerY - 0.35 + i * 0.07, towerZ + towerD / 2 + 0.01);
+  for (let i = 0; i < 5; i++) {
+    const slat = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.02, 0.02), grilleMaterial);
+    slat.position.set(twX + 0.62, twY - 0.15 + i * 0.055, twZ + twD / 2 + 0.01);
     deskGroup.add(slat);
   }
 
+  // Cables from behind the tower to monitor back and keyboard
   const cableMaterial = new THREE.MeshStandardMaterial({ color: '#3a3a3a', roughness: 0.9 });
   const cableRadius = 0.035;
   const cableSegments = 20;
 
   const monitorCable = new THREE.TubeGeometry(
     new THREE.CatmullRomCurve3([
-      new THREE.Vector3(towerX, towerY + 0.5, towerZ - towerD / 2),
-      new THREE.Vector3(towerX, towerY + 0.6, towerZ - towerD / 2 - 0.3),
-      new THREE.Vector3(towerX - 0.5, 2.8, -5.2),
-      new THREE.Vector3(-5.0, 3.0, -5.1),
-      new THREE.Vector3(-5.1, 3.5, -4.45 - 0.6),
+      new THREE.Vector3(twX, twY + 0.1, twZ - twD / 2),
+      new THREE.Vector3(twX, twY + 0.3, twZ - twD / 2 - 0.25),
+      new THREE.Vector3(twX, 4.0, twZ - 0.75),
     ]),
     cableSegments, cableRadius, 6,
   );
@@ -373,10 +357,8 @@ export const buildDesk = ({
 
   const kbCable = new THREE.TubeGeometry(
     new THREE.CatmullRomCurve3([
-      new THREE.Vector3(towerX, towerY + 0.3, towerZ - towerD / 2),
-      new THREE.Vector3(towerX, towerY + 0.4, towerZ - towerD / 2 - 0.2),
-      new THREE.Vector3(towerX - 0.3, 2.6, -5.0),
-      new THREE.Vector3(-4.5, 3.0, -4.8),
+      new THREE.Vector3(twX, twY + 0.05, twZ + twD / 2),
+      new THREE.Vector3(twX, twY + 0.15, twZ + twD / 2 + 0.2),
       new THREE.Vector3(-4.5, 3.18, -4.2),
       new THREE.Vector3(-4.5, 3.28, -3.82),
     ]),
