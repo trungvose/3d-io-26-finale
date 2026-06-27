@@ -32,6 +32,17 @@ Place HTML inside `<canvas>`, sync its transform → fully interactive DOM insid
 
 ---
 
+## Web MCP
+
+Proposed web standard — expose structured tools for AI agents:
+
+- JavaScript API + HTML form annotations
+- Agents know exactly how to interact with page features
+- Supports the user's experience, not just automation
+- Significantly improves agent actuation performance and reliability
+
+---
+
 ## Step 1: Basic Canvas setup
 
 First, add the `layoutsubtree` attribute to your `<canvas>` tag. This makes the browser aware of the content nested inside the canvas, preparing it to be displayed inside the canvas, and exposing it to accessibility trees.
