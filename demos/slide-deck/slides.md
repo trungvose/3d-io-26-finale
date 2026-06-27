@@ -1,57 +1,49 @@
-# Welcome to the 3D Slide Deck 🚀
+# The Web You Didn't Know You Had
 
-A simple markdown-based presentation framework running inside a WebGL iframe.
-
----
-
-## What can it do?
-
-*   Render **Markdown** directly into HTML.
-*   Easily edit `slides.md` to see changes.
-*   Click or use *arrow keys* to navigate.
-*   Native CSS transitions for a smooth experience!
+I hope you enjoy the talk so far! Trung Vo
 
 ---
 
-## Code Example
+## HTML-in-Canvas — DOM vs Canvas
 
-It supports code formatting out-of-the-box!
+**DOM** — text layout, semantics, rich browser integrations:
+- Highlight/copy, right-click, find-in-page, reader mode
+- Accessibility, translate, autofill, extensions, dark mode, zoom
+
+**Canvas / WebGL / WebGPU** — pixel grid, high-perf graphics:
+- Required by games, Google Docs, Figma
+- Responsive text → custom logic → bundle bloat
+- All DOM integrations: broken
+
+---
+
+## HTML-in-Canvas — Best of Both
+
+Place HTML inside `<canvas>`, sync its transform → fully interactive DOM inside WebGL:
+
+- **Text layout** — multiline, bidirectional, full CSS
+- **Form controls** — native inputs, fully customizable
+- **Text selection / copy / right-click** — natively inside 3D scenes
+- **Accessibility** — exposed to the accessibility tree, screen readers work
+- **Find-in-page** — Ctrl+F highlights text inside WebGL textures
+- **Indexability** — crawlers and AI agents can read canvas content
+- **Extensions** — text-replacement updates live on 3D meshes
+- **DevTools** — inspect, tweak CSS, watch it update on the 3D texture
+
+---
+
+## Step 1: Basic Canvas setup
+
+First, add the `layoutsubtree` attribute to your `<canvas>` tag. This makes the browser aware of the content nested inside the canvas, preparing it to be displayed inside the canvas, and exposing it to accessibility trees.
+
 
 ```javascript
-function greet() {
-  console.log("Hello from inside the 3D monitor!");
-}
+<canvas id="canvas" style="width: 200px; height: 200px;" layoutsubtree>
+  <div id="form_element">
+    <label for="name">Name:</label> <input id="name" type="text">
+  </div>
+</canvas>
 ```
-
----
-
-## Advanced Feature: HTML in Canvas 🎨
-
-The future of UI rendering in WebGL:
-*   Native DOM elements rendered directly into Canvas.
-*   Enables complex UI over 3D scenes without DOM overlays.
-*   Uses experimental `layoutsubtree` attribute.
-*   *Perfect for rendering this very monitor!*
-
----
-
-## Advanced Feature: WebGPU 🏎️
-
-The next generation of graphics on the web:
-*   Direct access to GPU hardware.
-*   Lower overhead than WebGL.
-*   Supports compute shaders for GPGPU tasks.
-*   Vastly improves performance for complex 3D scenes.
-
----
-
-## Advanced Feature: View Transitions 🎬
-
-Creating seamless UI transitions made easy:
-*   Morph elements between page states automatically.
-*   Reduces need for complex custom animation code.
-*   Works with Single Page Apps (SPAs) and Multi-Page Apps!
-
 ---
 
 ## Demo: Interactive Controls 🎛️
